@@ -10,7 +10,6 @@ library(pacman)      # download/load packages 'p_load'
 p_load(unmarked)     # occupancy models
 p_load(ggplot2)      # plotting
 p_load(patchwork)    # multiple ggplots per figure
-p_load(ape)          # Moran.I
 
 #~~~~~~~~~~~~~~~~~~~~~~~#
 # personal ggplot theme #
@@ -49,21 +48,12 @@ sampleddepths
 
 # prep data for spatial autocorrelation calculation
 colnames(Depth_2022)
-Depth_2022<-Depth_2022[1:8] # select relevant columns
-Depth_2022_2<-Depth_2022[complete.cases(Depth_2022), ] # remove data without coords
-head(Depth_2022_2)
-
-# Calculate geographic distances and inverse distance matrix
-SS_dists <- as.matrix(dist(cbind(Depth_2022_2$Long, Depth_2022_2$Lat)))
-SS.dists.inv <- 1/SS_dists
-diag(SS.dists.inv) <- 0
-SS.dists.inv[1:5, 1:5]
-
-# Test for spatial autocorrelation
-Moran.I(Depth_2022_2$Mean.pool.depth, SS.dists.inv, alternative="greater")
+Depth_2022<-Depth_2022[c(1,4,5,10)] # select relevant columns
+head(Depth_2022)
+str(Depth_2022)
 
 # crude map of sampling locations as a function of depth
-ggplot(Depth_2022_2, aes(x=-Long, y=Lat, color=Mean.pool.depth))+
+ggplot(Depth_2022, aes(x=Long, y=Lat, color=Mean.pool.depth))+
   geom_point()+
   labs(x='Longitude',y='Latitude',color='Depth')+
   theme_me+
@@ -121,6 +111,8 @@ sites <- cbind.data.frame(Pool.ID=sample(Depth_2022$Pool.ID, size=100,
                                          replace=F, prob=OccupancyEstimate))
 Selected <- merge(x=sites, y=Depth_2022)
 
+#write.csv(Selected, 'Data/SelectedLocations.csv')
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # making plot of depth for selected sites and comparing with full distribution
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -138,12 +130,24 @@ sampleddepths+selectedsites
 # difference, which is a result of the relationship between 
 # occupancy and depth in combination of the depths sampled (see: occ.plt2)
 
-# histogram of selected hydraulic head
-ggplot(Selected, aes(x=HH))+
-  geom_histogram(color='white', bins=20)+
-  ggtitle('Selected sites')+
-  labs(y='Frequency', x='Hydraulic head (mm)') + #ylim(0,4)+ 
-  theme_me 
+# crude map of sampling locations as a function of depth
+ggplot(Selected, aes(x=Long, y=Lat, color=Mean.pool.depth))+
+  geom_point()+
+  labs(x='Longitude',y='Latitude',color='Depth')+
+  theme_me+
+  coord_fixed()+
+  theme(legend.position = c(0.85,0.65),
+        legend.background = element_blank())
+
+# Pool depth as a function of Psi
+ggplot(data=Selected)+
+  geom_line(aes(x=Mean.pool.depth, y=Psi), size=0.5)+
+  labs(x='Depth (m)', y='Occupancy Probability')+
+  ylim(0,1)+ 
+  scale_x_continuous(limits=c(0.25,1),
+                     breaks=c(0.25,0.50,0.75,1.00),
+                     labels=function(x){sprintf("%.2f", x)})+
+  theme_me
 
 nrow(Depth_2022[Depth_2022$Mean.pool.depth>0.8,])
 nrow(Depth_2022[Depth_2022$P1..max.>0.8,])
