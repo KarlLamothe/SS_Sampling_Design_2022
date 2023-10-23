@@ -14,7 +14,7 @@ p_load(patchwork)    # multiple ggplots per figure
 #~~~~~~~~~~~~~~~~~~~~~~~#
 # personal ggplot theme #
 #~~~~~~~~~~~~~~~~~~~~~~~#
-theme_me <- theme_bw() +
+theme_set(theme_bw() +
   theme(axis.title   = element_text(size= 11, family= "sans", colour= "black"),
         axis.text.x  = element_text(size= 10, family= "sans", colour= "black"),
         axis.text.y  = element_text(size= 10, family= "sans", colour= "black"),
@@ -23,7 +23,7 @@ theme_me <- theme_bw() +
         strip.text   = element_text(size= 11, family= "sans", colour= "black"),
         plot.title   = element_text(size= 11, family= "sans", colour= "black"),
         panel.border = element_rect(colour = "black", fill=NA),
-        axis.ticks   = element_line(colour="black"))
+        axis.ticks   = element_line(colour="black")))
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # load previously collected data #
@@ -38,12 +38,11 @@ SSdata.Adult <- read.csv("Data/Adult_Occurrence.csv", header=T)
 colnames(Depth_2022)
 
 # plotting depth histogram
-sampleddepths<-ggplot(Depth_2022, aes(x=Mean.pool.depth))+
+sampleddepths <- ggplot(Depth_2022, aes(x=Mean.pool.depth))+
   geom_histogram(aes(y=..density..), color='white', bins=25)+
   geom_density(col = "red", lwd=3)+
   ggtitle("All surveyed sites")+
-  labs(y='Density', x='Mean pool depth (m)') + ylim(0,4)+
-  theme_me 
+  labs(y='Density', x='Mean pool depth (m)') + ylim(0,4)
 sampleddepths
 
 # prep data for spatial autocorrelation calculation
@@ -56,7 +55,6 @@ str(Depth_2022)
 ggplot(Depth_2022, aes(x=Long, y=Lat, color=Mean.pool.depth))+
   geom_point()+
   labs(x='Longitude',y='Latitude',color='Depth')+
-  theme_me+
   coord_fixed()+
   theme(legend.position = c(0.85,0.65),
         legend.background = element_blank())
@@ -81,7 +79,7 @@ fm3 <- occu(~ 1 ~Depth, SS.umf2)
 # Collect data and make prediction #
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Using measured mean depth from 2022 initial sampling
-newdata   <- cbind.data.frame(Depth = Depth_2022$Mean.pool.depth)
+newdata <- cbind.data.frame(Depth = Depth_2022$Mean.pool.depth)
 
 # prediction using the occupancy model
 occu <- cbind.data.frame(predict(fm3, type='state', newdata=newdata),
@@ -95,8 +93,7 @@ occ.plt2<-ggplot(data=occu)+
   ylim(0,1)+ 
   scale_x_continuous(limits=c(0.25,1),
                      breaks=c(0.25,0.50,0.75,1.00),
-                     labels=function(x){sprintf("%.2f", x)})+
-  theme_me
+                     labels=function(x){sprintf("%.2f", x)})
 occ.plt2
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -121,8 +118,7 @@ selectedsites<-ggplot(Selected, aes(x=Mean.pool.depth))+
   geom_histogram(aes(y=..density..), color='white', bins=20)+
   geom_density(col = "red", lwd=3)+
   ggtitle('Selected sites')+
-  labs(y='Density', x='Mean pool depth (m)') + ylim(0,4)+ 
-  theme_me 
+  labs(y='Density', x='Mean pool depth (m)') + ylim(0,4)
 
 sampleddepths+selectedsites
 # in this plot you see that deeper sites were preferentially selected, indicated
@@ -134,7 +130,6 @@ sampleddepths+selectedsites
 ggplot(Selected, aes(x=Long, y=Lat, color=Mean.pool.depth))+
   geom_point()+
   labs(x='Longitude',y='Latitude',color='Depth')+
-  theme_me+
   coord_fixed()+
   theme(legend.position = c(0.85,0.65),
         legend.background = element_blank())
@@ -146,8 +141,7 @@ ggplot(data=Selected)+
   ylim(0,1)+ 
   scale_x_continuous(limits=c(0.25,1),
                      breaks=c(0.25,0.50,0.75,1.00),
-                     labels=function(x){sprintf("%.2f", x)})+
-  theme_me
+                     labels=function(x){sprintf("%.2f", x)})
 
 nrow(Depth_2022[Depth_2022$Mean.pool.depth>0.8,])
 nrow(Depth_2022[Depth_2022$P1..max.>0.8,])
